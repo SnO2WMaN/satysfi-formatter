@@ -1,0 +1,18 @@
+imports = ["language.rust"]
+
+[devshell]
+name = "satysfi-formatter"
+packages = [
+  "cargo-edit",
+  "cargo-make",
+  "cargo-watch",
+  "nixpkgs-fmt",
+  "python3",
+  "rust-analyzer",
+  "satysfi",
+  "taplo-cli",
+]
+
+[[commands]]
+package = "treefmt"
+category = "formatter"
