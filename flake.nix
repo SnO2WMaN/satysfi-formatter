@@ -33,13 +33,14 @@
           pname = "satysfi-formatter";
           root = ./.;
         };
-        defaultPackage = packages.satysfi-formatter;
+        packages.default = packages.satysfi-formatter;
 
         # `nix run`
         apps.satysfi-formatter = flake-utils.lib.mkApp {
           drv = packages.satysfi-formatter;
+          name = "satysfi-fmt";
         };
-        defaultApp = apps.satysfi-formatter;
+        apps.default = apps.satysfi-formatter;
 
         # `nix develop`
         devShell = pkgs.devshell.mkShell {
@@ -50,5 +51,6 @@
             packages.satysfi-formatter
           ];
         };
-      });
+      }
+    );
 }
