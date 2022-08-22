@@ -3,3 +3,6 @@ dist/*
 
 .direnv/
 result
+
+# VSCode
+.vscode/settings.json
