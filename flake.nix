@@ -82,7 +82,7 @@
             ]
             ++ (with self.packages.${system}; [
               satysfi-formatter
-              satysfi-formatter-each
+              satysfi-formatter-write-each
             ]);
         };
       }
