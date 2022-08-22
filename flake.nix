@@ -1,37 +1,41 @@
 {
   inputs = {
-    nixpkgs = {
-      url = "github:nixos/nixpkgs/nixos-unstable";
-    };
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-    };
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     naersk = {
       url = "github:nix-community/naersk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    devshell = {
-      url = "github:numtide/devshell";
-    };
+
+    # dev
+    devshell.url = "github:numtide/devshell";
+    flake-utils.url = "github:numtide/flake-utils";
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
     };
   };
-  outputs = { self, nixpkgs, flake-utils, naersk, devshell, ... } @ inputs:
+  outputs = {
+    self, nixpkgs, flake-utils, naersk, devshell, ... } @ inputs:
     flake-utils.lib.eachDefaultSystem (system:
       let
+        inherit (pkgs) lib;
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ devshell.overlay ];
         };
-        naersk-lib = naersk.lib."${system}";
+        naersk' = pkgs.callPackage naersk {};
       in
       rec {
         # `nix build`
-        packages.satysfi-formatter = naersk-lib.buildPackage {
+        packages.satysfi-formatter = naersk'.buildPackage {
           pname = "satysfi-formatter";
-          root = ./.;
+          root = builtins.path {
+            path = ./.;
+            filter = name: type:
+              (lib.hasPrefix (toString ./src) name)
+              || (name == toString ./Cargo.toml)
+              || (name == toString ./Cargo.lock);
+          };
         };
         packages.default = packages.satysfi-formatter;
 
@@ -44,11 +48,23 @@
 
         # `nix develop`
         devShell = pkgs.devshell.mkShell {
-          imports = [
-            (pkgs.devshell.importTOML ./devshell.toml)
+          commands = with pkgs; [
+            {
+              package = "treefmt";
+              category = "formatter";
+            }
           ];
-          packages = [
-            packages.satysfi-formatter
+          packages = with pkgs; [
+            gcc
+            cargo
+            rustc
+
+            # develop
+            cargo-make
+            python3
+            alejandra
+            taplo-cli
+            rustfmt
           ];
         };
       }
