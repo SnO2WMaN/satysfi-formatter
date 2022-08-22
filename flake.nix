@@ -59,6 +59,14 @@
         };
         apps.default = self.apps.${system}.satysfi-formatter;
 
+        checks = {
+          inherit
+            (self.packages.${system})
+            satysfi-formatter
+            satysfi-formatter-write-each
+            ;
+        };
+
         # `nix develop`
         devShell = pkgs.devshell.mkShell {
           commands = with pkgs; [
