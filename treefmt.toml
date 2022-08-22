@@ -10,3 +10,7 @@ includes = ["*.rs"]
 command = "taplo"
 options = ["format"]
 includes = ["*.toml"]
+
+[formatter.satysfi]
+command = "satysfi-fmt-write-each"
+includes = ["*.saty", "*.satyh", "*.satyg"]
