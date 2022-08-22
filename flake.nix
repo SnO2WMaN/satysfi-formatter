@@ -15,18 +15,24 @@
     };
   };
   outputs = {
-    self, nixpkgs, flake-utils, naersk, devshell, ... } @ inputs:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
+    self,
+    nixpkgs,
+    flake-utils,
+    naersk,
+    devshell,
+    ...
+  } @ inputs:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
         inherit (pkgs) lib;
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ devshell.overlay ];
+          overlays = [
+            devshell.overlay
+          ];
         };
         naersk' = pkgs.callPackage naersk {};
-      in
-      rec {
-        # `nix build`
+      in {
         packages.satysfi-formatter = naersk'.buildPackage {
           pname = "satysfi-formatter";
           root = builtins.path {
@@ -37,14 +43,21 @@
               || (name == toString ./Cargo.lock);
           };
         };
-        packages.default = packages.satysfi-formatter;
+        packages.satysfi-formatter-each = pkgs.callPackage ./nix/fmt-write-each.nix {
+          satysfi-formatter = self.packages.${system}.satysfi-formatter;
+        };
+        packages.default = self.packages.${system}.satysfi-formatter;
 
         # `nix run`
         apps.satysfi-formatter = flake-utils.lib.mkApp {
-          drv = packages.satysfi-formatter;
+          drv = self.packages.${system}.satysfi-formatter;
           name = "satysfi-fmt";
         };
-        apps.default = apps.satysfi-formatter;
+        apps.satysfi-formatter-each = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.satysfi-formatter-each;
+          name = "satysfi-fmt-write-each";
+        };
+        apps.default = self.apps.${system}.satysfi-formatter;
 
         # `nix develop`
         devShell = pkgs.devshell.mkShell {
@@ -54,18 +67,23 @@
               category = "formatter";
             }
           ];
-          packages = with pkgs; [
-            gcc
-            cargo
-            rustc
+          packages = with pkgs;
+            [
+              gcc
+              cargo
+              rustc
 
-            # develop
-            cargo-make
-            python3
-            alejandra
-            taplo-cli
-            rustfmt
-          ];
+              # develop
+              cargo-make
+              python3
+              alejandra
+              taplo-cli
+              rustfmt
+            ]
+            ++ (with self.packages.${system}; [
+              satysfi-formatter
+              satysfi-formatter-each
+            ]);
         };
       }
     );
