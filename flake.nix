@@ -43,7 +43,7 @@
               || (name == toString ./Cargo.lock);
           };
         };
-        packages.satysfi-formatter-each = pkgs.callPackage ./nix/fmt-write-each.nix {
+        packages.satysfi-formatter-write-each = pkgs.callPackage ./nix/fmt-write-each.nix {
           satysfi-formatter = self.packages.${system}.satysfi-formatter;
         };
         packages.default = self.packages.${system}.satysfi-formatter;
@@ -53,7 +53,7 @@
           drv = self.packages.${system}.satysfi-formatter;
           name = "satysfi-fmt";
         };
-        apps.satysfi-formatter-each = flake-utils.lib.mkApp {
+        apps.satysfi-formatter-write-each = flake-utils.lib.mkApp {
           drv = self.packages.${system}.satysfi-formatter-each;
           name = "satysfi-fmt-write-each";
         };
