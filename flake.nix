@@ -53,7 +53,6 @@
             self.overlays.default
           ];
         };
-        naersk' = pkgs.callPackage naersk {};
       in {
         packages.satysfi-formatter = pkgs.satysfi-formatter;
         packages.satysfi-formatter-write-each = pkgs.satysfi-formatter-write-each;
