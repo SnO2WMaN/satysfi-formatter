@@ -22,30 +22,37 @@
     devshell,
     ...
   } @ inputs:
-    flake-utils.lib.eachDefaultSystem (
+    {
+      overlays.default = final: prev: let
+        naersk' = final.callPackage naersk {};
+      in {
+        satysfi-formatter = naersk'.buildPackage {
+          pname = "satysfi-formatter";
+          root = builtins.path {
+            path = ./.;
+            filter = name: type:
+              (final.lib.hasPrefix (toString ./src) name)
+              || (name == toString ./Cargo.toml)
+              || (name == toString ./Cargo.lock);
+          };
+        };
+        satysfi-formatter-write-each = final.callPackage ./nix/fmt-write-each.nix {};
+      };
+    }
+    // flake-utils.lib.eachDefaultSystem (
       system: let
         inherit (pkgs) lib;
         pkgs = import nixpkgs {
           inherit system;
           overlays = [
             devshell.overlay
+            self.overlays.default
           ];
         };
         naersk' = pkgs.callPackage naersk {};
       in {
-        packages.satysfi-formatter = naersk'.buildPackage {
-          pname = "satysfi-formatter";
-          root = builtins.path {
-            path = ./.;
-            filter = name: type:
-              (lib.hasPrefix (toString ./src) name)
-              || (name == toString ./Cargo.toml)
-              || (name == toString ./Cargo.lock);
-          };
-        };
-        packages.satysfi-formatter-write-each = pkgs.callPackage ./nix/fmt-write-each.nix {
-          satysfi-formatter = self.packages.${system}.satysfi-formatter;
-        };
+        packages.satysfi-formatter = pkgs.satysfi-formatter;
+        packages.satysfi-formatter-write-each = pkgs.satysfi-formatter-write-each;
         packages.default = self.packages.${system}.satysfi-formatter;
 
         # `nix run`
