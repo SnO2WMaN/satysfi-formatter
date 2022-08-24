@@ -5,6 +5,7 @@
       url = "github:nix-community/naersk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-filter.url = "github:numtide/nix-filter";
 
     # dev
     devshell.url = "github:numtide/devshell";
@@ -17,6 +18,7 @@
   outputs = {
     self,
     nixpkgs,
+    nix-filter,
     flake-utils,
     naersk,
     devshell,
@@ -28,13 +30,15 @@
       in {
         satysfi-formatter = naersk'.buildPackage {
           pname = "satysfi-formatter";
-          root = builtins.path {
-            path = ./.;
-            filter = name: type:
-              (final.lib.hasPrefix (toString ./src) name)
-              || (name == toString ./Cargo.toml)
-              || (name == toString ./Cargo.lock);
-          };
+          root = with nix-filter.lib;
+            filter {
+              root = ./.;
+              include = [
+                "Cargo.toml"
+                "Cargo.lock"
+                (inDirectory "src")
+              ];
+            };
         };
         satysfi-formatter-write-each = final.callPackage ./nix/fmt-write-each.nix {};
       };
